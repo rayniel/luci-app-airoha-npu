@@ -70,14 +70,19 @@ A missing source costs its own section; the rest of the page still renders.
 
 ## Installation
 
-### From OpenWrt build
+### From OpenWrt build (src-git feed)
 
 The LuCI feed has to be installed first: the package build includes
-`feeds/luci/luci.mk`.
+`feeds/luci/luci.mk`. This repository is a feed: the package lives in the
+`luci-app-airoha-npu/` subdirectory, not at the repository root.
 
 ```sh
-# Add to your build tree
-git clone https://github.com/rchen14b/luci-app-airoha-npu.git package/luci-app-airoha-npu
+# Add this line once to feeds.conf.default (or feeds.conf if you use it):
+# src-git airoha_npu https://github.com/rayniel/luci-app-airoha-npu.git;remix
+
+# Fetch the remix branch and install the package
+./scripts/feeds update airoha_npu
+./scripts/feeds install luci-app-airoha-npu
 
 # Enable in menuconfig
 make menuconfig
@@ -87,21 +92,24 @@ make menuconfig
 make package/luci-app-airoha-npu/compile V=s
 ```
 
-It can also be kept out of the build tree as its own feed, which keeps it
-out of images that do not ask for it:
+Alternatively, clone the feed outside the build tree and add a `src-link`
+entry pointing at the clone itself:
 
 ```sh
-# clone anywhere, then point a feed at the directory holding the clone
-git clone https://github.com/rchen14b/luci-app-airoha-npu.git ~/openwrt-feeds/luci-app-airoha-npu
-echo "src-link airoha $HOME/openwrt-feeds" >> feeds.conf
+git clone --branch remix https://github.com/rayniel/luci-app-airoha-npu.git ~/openwrt-feeds/airoha-npu
+# Add this line to the active feeds configuration, using an absolute path:
+# src-link airoha_npu /absolute/path/to/openwrt-feeds/airoha-npu
 
-./scripts/feeds update airoha
+./scripts/feeds update airoha_npu
 ./scripts/feeds install luci-app-airoha-npu
 ```
 
 ### Manual install (dev)
 
 ```sh
+# Run from the package subdirectory
+cd luci-app-airoha-npu
+
 # Copy files to router
 scp root/usr/libexec/rpcd/luci.airoha_npu root@router:/usr/libexec/rpcd/
 scp root/usr/share/luci/menu.d/luci-app-airoha-npu.json root@router:/usr/share/luci/menu.d/
@@ -127,21 +135,21 @@ ssh root@router 'chmod +x /usr/libexec/rpcd/luci.airoha_npu && /etc/init.d/rpcd 
 ## Project Structure
 
 ```
-luci-app-airoha-npu/
-├── Makefile                                          # OpenWrt package build
-├── htdocs/
-│   └── luci-static/resources/view/airoha_npu/
-│       └── status.js                                 # LuCI JavaScript view
-├── root/
-│   └── usr/
-│       ├── libexec/rpcd/
-│       │   └── luci.airoha_npu                       # RPC backend (shell)
-│       └── share/
-│           ├── luci/menu.d/
-│           │   └── luci-app-airoha-npu.json          # Menu config
-│           └── rpcd/acl.d/
-│               └── luci-app-airoha-npu.json          # ACL permissions
-└── screenshots/
+repository/
+├── README.md
+├── LICENSE
+├── screenshots/
+└── luci-app-airoha-npu/
+    ├── Makefile                                      # OpenWrt package build
+    ├── LICENSE
+    ├── htdocs/luci-static/resources/view/airoha_npu/
+    │   └── status.js                                 # LuCI JavaScript view
+    ├── po/                                           # Translations
+    └── root/usr/
+        ├── libexec/rpcd/luci.airoha_npu               # RPC backend (shell)
+        └── share/
+            ├── luci/menu.d/luci-app-airoha-npu.json   # Menu config
+            └── rpcd/acl.d/luci-app-airoha-npu.json    # ACL permissions
 ```
 
 ## RPC Methods
